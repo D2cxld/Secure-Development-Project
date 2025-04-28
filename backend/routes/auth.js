@@ -1,0 +1,1 @@
+// auth.js is to handkle password changes 
