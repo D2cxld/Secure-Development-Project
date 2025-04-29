@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <form action='/backend/register.js' method="POST">
+  <form id="registerForm" action="/register/reg" method="POST">
     <h2>Register</h2>
 
     <label for="firstname">First Name</label>
@@ -21,7 +21,8 @@
     <input type="email" name="email" required />
 
     <label for="username">Username</label>
-    <input type="text" name="username" required />
+<input type="text" name="username" id="username" required />
+<div id="usernameStatus" class="error"></div>
 
     <label for="password">Password</label>
     <input type="password" name="password" id="password" required />
@@ -34,6 +35,7 @@
     <button type="submit">Register</button>
   </form>
 
-  
+  <script src="/front-end/javascript /register.js"></script>
+
 </body>
 </html>
