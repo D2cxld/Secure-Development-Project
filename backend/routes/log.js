@@ -1,10 +1,18 @@
 //log.js is to handle the login of the page
-const mysql = require('mysql');
+// backend/routes/log.js
 const express = require('express');
-const logcontroller = require('../../controllers/log');
+const loginController = require('/Users/davidorji/Secure Development Project/Secure-Development-Project/backend/controllers /login.js');  // FIXED path and name
 
-const router = express.Router(); 
+const mysql = require('mysql');
 
-router.post('/login',logcontroller.login);
 
-module.exports= router;
+module.exports = (connection) => {
+    const router = express.Router();
+
+    // Attach the connection to controller
+    router.post('/', (req, res) => {
+        loginController.login(req, res, connection);
+    });
+
+    return router;
+};

@@ -37,3 +37,5 @@ document.getElementById('username').addEventListener('blur', async function () {
         statusDiv.textContent = 'Error checking username';
     }
 });
+
+module.exports = router;

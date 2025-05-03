@@ -1,20 +1,9 @@
+// backend/controllers/register.js
 
-const mysql = require('mysql');
-// const bcrypt = require('bcrypt'); (optional if you want to hash passwords)
-
-const connection = mysql.createConnection({
-    host: 'localhost', 
-    user: 'root', 
-    password: 'Software007', 
-    database: 'Blogdb',
-    port: '3306',
-});
-
-exports.reg = (req, res) => {
+exports.reg = (req, res, connection) => {
     const { email, username, password, firstname, surname } = req.body;
 
-    // Set role manually because HTML form doesn't send it
-    const role = 'user';  
+    const role = 'user';
 
     connection.query(
         'SELECT * FROM user_login WHERE username = ? OR email = ?',
@@ -31,7 +20,7 @@ exports.reg = (req, res) => {
 
             const userData = {
                 username,
-                password,   // ⚠️ later you should hash password!
+                password,
                 email,
                 first_name: firstname,
                 last_name: surname,

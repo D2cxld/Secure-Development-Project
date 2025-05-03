@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const app = express();
 const path = require('path');
@@ -33,20 +34,30 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Routes
-app.use('/register', require('./backend/routes/register'));
+const registerRouter = require('./backend/routes/reg')(connection);  // Pass connection cleanly
+app.use('/register', registerRouter);
+
+const loginRouter = require('./backend/routes/log')(connection);
+app.use('/login', loginRouter);
+
 
 // Serve pages
 app.get('/register.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'register.html'));
+    res.sendFile(path.join(__dirname, 'front-end', 'register.html'));
 });
+
+app.get('/itslogin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'front-end', 'itslogin.html'));
+});
+
 
 // Serve static assets
 app.get("/styles.css", (req, res) => {
     res.type('text/css');
-    res.sendFile(path.join(__dirname, 'public', 'styles.css'))
+    res.sendFile(path.join(__dirname, 'styles.css'));
 });
 
 app.get("/js/register.js", (req, res) => {
     res.type('text/javascript');
-    res.sendFile(path.join(__dirname, 'public', 'js', 'register.js'))
+    res.sendFile(path.join(__dirname, 'front-end', 'js', 'register.js'));
 });
