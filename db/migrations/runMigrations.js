@@ -8,7 +8,8 @@ const connection = mysql.createConnection({
   database: 'secureblog_roles_v2'
 });
 
-const migrationSQL = fs.readFileSync('./db/migrations/001_create_user_login.sql', 'utf-8');
+const migrationSQL = fs.readFileSync('./db/migrations/001_create_user_login.sql', 'utf-8').replace(/\r/g, '');
+
 
 connection.connect();
 connection.query(migrationSQL, (err, results) => {
