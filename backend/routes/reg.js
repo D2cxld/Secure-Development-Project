@@ -21,7 +21,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'bloguser',
   password: 'BlogPass123!',
-  database: 'blogdb',
+  database: 'secureblog_roles_v2',
   port: 3306
 });
 
