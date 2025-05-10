@@ -8,8 +8,8 @@ const router = express.Router();
 // SQL connection config - changed to be able to access MY SQL without issues...new dev/blog user implemented and good practice too on separate MySql tab
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'bloguser',
-  password: 'BlogPass123!',
+  user: 'root',
+  password: '23Benedict:)',
   database: 'secureblog_roles_v2',
   port: 3306
 });
