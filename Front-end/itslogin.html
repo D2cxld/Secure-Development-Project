@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login – Wellbeing Blog</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h2>🔐 Secure Login</h2>
+
+  <form id="login-form">
+    <label for="username">Username:</label>
+    <input type="text" id="username" required />
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" required />
+
+    <div id="loginError" class="error"></div>
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorDiv = document.getElementById('loginError');
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          errorDiv.textContent = msg || '❌ Login failed.';
+          return;
+        }
+
+        const data = await res.json();
+        sessionStorage.setItem('role', data.role);
+        sessionStorage.setItem('username', data.username);
+
+        if (data.role === 'admin') {
+          window.location.href = '/2fa.html';
+        } else {
+          window.location.href = '/2fa.html?optional=true';
+        }
+
+      } catch (err) {
+        errorDiv.textContent = '⚠️ Something went wrong.';
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

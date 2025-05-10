@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2FA Verification</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h2 id="2fa-heading">Two-Factor Authentication</h2>
+
+  <form id="twofa-form">
+    <label id="2fa-label" for="code">Enter the 6-digit code sent to your device:</label>
+    <input type="text" id="code" name="code" maxlength="6" required>
+    <div id="codeError" class="error"></div>
+    <button type="submit">Verify</button>
+  </form>
+
+  <button id="skipBtn" style="display: none;">Skip 2FA</button>
+
+  <script>
+    // Optional 2FA handling
+    if (window.location.search.includes('optional=true')) {
+      document.getElementById('2fa-heading').textContent = 'Would you like to set up 2FA?';
+      document.getElementById('2fa-label').textContent = 'You can enter a 6-digit code to verify, or skip below.';
+
+      const skipBtn = document.getElementById('skipBtn');
+      skipBtn.style.display = 'inline';
+
+      skipBtn.addEventListener('click', async () => {
+        const username = sessionStorage.getItem('username');
+
+        await fetch('/set-2fa-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, uses2FA: false })
+        });
+
+        window.location.href = '/blog.html';
+      });
+    }
+
+    // 2FA submission
+    document.getElementById('twofa-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const code = document.getElementById('code').value.trim();
+      const errorDiv = document.getElementById('codeError');
+
+      if (code === '123456') {
+        alert('✅ 2FA code verified! Welcome.');
+        window.location.href = "/blog.html";
+      } else {
+        errorDiv.textContent = '❌ Invalid code. Please try again.';
+      }
+    });
+  </script>
+</body>
+</html>

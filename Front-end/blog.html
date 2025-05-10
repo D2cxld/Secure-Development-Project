@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wellbeing Blog - Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>🧘 Welcome to the Secure Wellbeing Blog</h1>
+
+  <p>This is a private area for registered users.</p>
+
+  <div id="userActions">
+    <h2>Your Wellbeing Tips</h2>
+    <ul>
+      <li>🌿 Daily breathing exercises</li>
+      <li>🥦 Healthy lunch prep ideas</li>
+      <li>😴 Sleep routine planner</li>
+    </ul>
+  </div>
+
+  <div id="adminActions" style="display: none;">
+    <h2>🔐 Admin Controls</h2>
+    <button onclick="alert('🛡 Viewing audit logs')">View Audit Logs</button>
+    <button onclick="alert('👥 Managing users')">Manage Users</button>
+  </div>
+
+  <script>
+    // 🔁 Simulate role — change this to 'user' or 'admin'
+    const role = 'admin';
+
+    if (role === 'admin') {
+      document.getElementById('adminActions').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
