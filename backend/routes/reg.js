@@ -1,4 +1,4 @@
-const express = require('express'); 
+const express = require('express');  
 const router = express.Router();
 require('dotenv').config();
 const PEPPER = process.env.PEPPER;
@@ -15,7 +15,7 @@ const passwordBlacklist = fs.readFileSync(
   'utf-8'
 ).split('\n').map(p => p.trim().toLowerCase());
 
-console.log("\ud83e\udde0 Blacklist loaded:", passwordBlacklist);
+console.log("🧠 Blacklist loaded:", passwordBlacklist);
 
 // My SQL connection 
 const connection = mysql.createConnection({
@@ -78,7 +78,10 @@ router.post('/', (req, res) => {
               'INSERT INTO user_login (username, email, password_hash, role, uses_2fa) VALUES (?, ?, ?, ?, ?)',
               [username, email, hash, finalRole, uses2FA],
               (err) => {
-                if (err) return res.status(500).send('\u274c Failed to create user_login.');
+                if (err) {
+                  console.error('❌ Failed to create user_login:', err.message);
+                  return res.status(500).send('\u274c Failed to create user_login.');
+                }
 
                 connection.query(
                   'INSERT INTO user_profile (username, first_name, surname) VALUES (?, ?, ?)',
@@ -88,7 +91,7 @@ router.post('/', (req, res) => {
 
                     if (isAdmin) {
                       const code = Math.floor(100000 + Math.random() * 900000);
-                      console.log(`\ud83d\udce7 Sending 2FA code to ${email}: ${code}`);
+                      console.log(`📧 Sending 2FA code to ${email}: ${code}`);
 
                       try {
                         await sendVerificationCode(email, code);
@@ -99,7 +102,11 @@ router.post('/', (req, res) => {
                       }
                     }
 
-                    return res.status(200).json({ message: '\u2705 Registration successful.', role });
+                    return res.status(200).json({ 
+                      message: '✅ Registration successful.', 
+                      role: finalRole, 
+                      isAdmin 
+                    });
                   }
                 );
               }
@@ -133,5 +140,27 @@ router.get('/check-username', (req, res) => {
     }
   );
 });
+
+// === Live email availability check ===
+router.get('/check-email', (req, res) => {
+  const email = req.query.email;
+  if (!email) {
+    return res.status(400).send('Email is required');
+  }
+
+  connection.query(
+    'SELECT * FROM user_login WHERE email = ?',
+    [email],
+    (err, results) => {
+      if (err) {
+        console.error('❌ Email check error:', err.message);
+        return res.status(500).send('❌ Server error');
+      }
+
+      return res.json({ available: results.length === 0 });
+    }
+  );
+});
+
 
 module.exports = router;
