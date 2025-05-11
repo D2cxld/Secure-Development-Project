@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const path = require('path');
+require('dotenv').config();
+
 
 // Start server
 app.listen(5500, () => {
@@ -18,6 +20,7 @@ app.use('/login', require('./routes/auth'));
 
 // Routes
 app.use('/register', require('./routes/reg'));
+app.use('/2fa', require('./routes/2fa'));
 
 // Serve pages
 app.get('/register.html', (req, res) => {

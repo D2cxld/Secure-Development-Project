@@ -18,17 +18,20 @@
   <button id="skipBtn" style="display: none;">Skip 2FA</button>
 
   <script>
-    // Optional 2FA handling
-    if (window.location.search.includes('optional=true')) {
-      document.getElementById('2fa-heading').textContent = 'Would you like to set up 2FA?';
-      document.getElementById('2fa-label').textContent = 'You can enter a 6-digit code to verify, or skip below.';
+    const heading = document.getElementById('2fa-heading');
+    const label = document.getElementById('2fa-label');
+    const skipBtn = document.getElementById('skipBtn');
 
-      const skipBtn = document.getElementById('skipBtn');
+    const username = sessionStorage.getItem('username');
+    const optional2FA = window.location.search.includes('optional=true');
+
+    // Optional 2FA UX
+    if (optional2FA) {
+      heading.textContent = 'Would you like to set up 2FA?';
+      label.textContent = 'You can enter a 6-digit code to verify, or skip below.';
       skipBtn.style.display = 'inline';
 
       skipBtn.addEventListener('click', async () => {
-        const username = sessionStorage.getItem('username');
-
         await fetch('/set-2fa-preference', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,17 +42,29 @@
       });
     }
 
-    // 2FA submission
-    document.getElementById('twofa-form').addEventListener('submit', function (e) {
+    // Code submit
+    document.getElementById('twofa-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const code = document.getElementById('code').value.trim();
       const errorDiv = document.getElementById('codeError');
 
-      if (code === '123456') {
-        alert('✅ 2FA code verified! Welcome.');
-        window.location.href = "/blog.html";
-      } else {
-        errorDiv.textContent = '❌ Invalid code. Please try again.';
+      try {
+        const res = await fetch('/2fa/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, code })
+        });
+
+        const result = await res.text();
+        if (res.ok) {
+          alert(result);
+          window.location.href = '/blog.html';
+        } else {
+          errorDiv.textContent = result;
+        }
+      } catch (err) {
+        console.error('Error verifying 2FA:', err);
+        errorDiv.textContent = '⚠️ Server error. Try again.';
       }
     });
   </script>

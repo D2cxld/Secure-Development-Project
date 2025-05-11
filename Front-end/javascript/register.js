@@ -1,32 +1,35 @@
-// Password match check
-document.getElementById('registerForm').addEventListener('submit', async function (e) {
-  e.preventDefault(); // Always prevent default form submission
+// Password match + email check
 
-  // Gather all field values
-  const first_name = document.getElementById('firstName').value.trim();
+document.getElementById('registerForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const first_name = document.getElementById('firstname').value.trim();
   const surname = document.getElementById('surname').value.trim();
   const email = document.getElementById('email').value.trim();
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const confirm = document.getElementById('confirmPassword').value;
-  const errorDiv = document.getElementById('passwordError');
 
-  // Simple client-side validation
-  if (!first_name || !surname || !email || !username || !password || !confirm) {
-    alert('❌ All fields are required.');
+  const passwordError = document.getElementById('passwordError');
+  const emailError = document.getElementById('emailStatus');
+
+  // Clear errors
+  passwordError.textContent = '';
+  emailError.textContent = '';
+
+  // Email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    emailError.textContent = '❌ Invalid email format';
     return;
   }
 
-  // Password match check
+  // Password confirmation check
   if (password !== confirm) {
-    errorDiv.textContent = '❌ Passwords do not match';
+    passwordError.textContent = '❌ Passwords do not match';
     return;
   }
 
-  // Clear any old errors
-  errorDiv.textContent = '';
-
-  // Send to backend for full validation
   try {
     const response = await fetch('/register', {
       method: 'POST',
@@ -36,43 +39,73 @@ document.getElementById('registerForm').addEventListener('submit', async functio
       body: JSON.stringify({ first_name, surname, email, username, password })
     });
 
-    const result = await response.text();
-    alert(result);
+    const result = await response.json();
+
+    alert(result.message);
 
     if (response.ok) {
-      // Optionally redirect or reset form here
-    }
+      if (result.role === 'admin') {
+        window.location.href = '/2fa.html';
+      } else {
+        window.location.href = '/blog.html';
+      }
 
+    }
   } catch (error) {
-    console.error('Error submitting form:', error);
+    console.error('Error submitting registration:', error);
     alert('⚠️ Error submitting registration form');
   }
 });
 
-// Username availability checker (unchanged)
-document.getElementById('username').addEventListener('blur', async function () {
-  const username = this.value;
-  const statusDiv = document.getElementById('usernameStatus');
+// Username availability checker
 
+const usernameInput = document.getElementById('username');
+const usernameStatus = document.getElementById('usernameStatus');
+
+usernameInput.addEventListener('blur', async function () {
+  const username = this.value.trim();
   if (username.length === 0) {
-    statusDiv.textContent = '';
+    usernameStatus.textContent = '';
     return;
   }
-
   try {
-    const response = await fetch(`/register/check-username?username=${encodeURIComponent(username)}`);
-    const data = await response.json();
-
+    const res = await fetch(`/register/check-username?username=${encodeURIComponent(username)}`);
+    const data = await res.json();
     if (data.available) {
-      statusDiv.style.color = 'green';
-      statusDiv.textContent = '✅ Username is available!';
+      usernameStatus.style.color = 'green';
+      usernameStatus.textContent = '✅ Username is available!';
     } else {
-      statusDiv.style.color = 'red';
-      statusDiv.textContent = '❌ Username is already taken';
+      usernameStatus.style.color = 'red';
+      usernameStatus.textContent = '❌ Username already exists';
     }
-  } catch (error) {
-    console.error('Error checking username:', error);
-    statusDiv.style.color = 'red';
-    statusDiv.textContent = '⚠️ Error checking username';
+  } catch (err) {
+    usernameStatus.style.color = 'red';
+    usernameStatus.textContent = '⚠️ Error checking username';
+  }
+});
+
+// Email availability checker
+const emailInput = document.getElementById('email');
+const emailStatus = document.getElementById('emailStatus');
+
+emailInput.addEventListener('blur', async function () {
+  const email = this.value.trim();
+  if (email.length === 0) {
+    emailStatus.textContent = '';
+    return;
+  }
+  try {
+    const res = await fetch(`/register/check-email?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (data.available) {
+      emailStatus.style.color = 'green';
+      emailStatus.textContent = '✅ Email is available';
+    } else {
+      emailStatus.style.color = 'red';
+      emailStatus.textContent = '❌ Email already registered';
+    }
+  } catch (err) {
+    emailStatus.style.color = 'red';
+    emailStatus.textContent = '⚠️ Error checking email';
   }
 });
