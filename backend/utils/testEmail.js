@@ -1,4 +1,8 @@
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/../.env' }); // File pathway access rather than moving file to fix issue
+
+console.log("✅ EMAIL_USER:", process.env.EMAIL_USER);
+console.log("✅ EMAIL_PASS:", process.env.EMAIL_PASS);
+
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
