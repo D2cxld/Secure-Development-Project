@@ -5,6 +5,23 @@ const loginController = require('/Users/davidorji/Secure Development Project/Sec
 
 const mysql = require('mysql');
 
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'Software007',
+    database: 'Blogdb',
+    port: '3306'
+});
+
+connection.connect((error) => {
+    if (error) {
+        console.error('Error connecting to MySQL:', error);
+    } else {
+        console.log('Connected to MySQL (routes/log.js)');
+    }
+});
+
+
 
 module.exports = (connection) => {
     const router = express.Router();

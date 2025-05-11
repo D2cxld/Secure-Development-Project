@@ -40,4 +40,184 @@ body {
     color: red;
     font-size: 0.9em;
   }
-  
+/* Ensure padding and margin are zeroed out for body and html */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Box-sizing to include padding and borders in width and height */
+* {
+  box-sizing: border-box;
+}
+
+/* Navbar styling */
+.main-navbar {
+  background-color: hsl(0, 0%, 16%);
+  position: fixed;
+  top: 0;
+  width: 100%;  /* Ensures the navbar spans full width */
+  z-index: 1000;
+}
+
+.main-navbar .navbar-menu {
+  list-style: none; 
+  margin: 0 50px;
+  padding: 20;
+  display: flex;
+  justify-content: space-evenly;  /* Distribute navbar items evenly */
+  width: 100%;  /* Make sure the menu container spans full width */
+  height: 50px;
+}
+
+.main-navbar .navbar-menu li {
+  margin: 0 5px;
+}
+
+.main-navbar .navbar-menu li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+  font-size: 1.5rem; /* Slightly larger text */
+  padding: 10px 5px; /* Padding around each link */
+}
+.main-navbar .navbar-menu li a:hover {
+  color: #c9d400;
+  border: 2px solid #00d45c;
+  border-radius: 5px;
+  padding: 8px 3px; /* Slightly smaller padding on hover */
+}
+body {
+  padding-top: 90px;  /* Adjust if navbar height changes */
+}
+
+/* CSS for the blog page 
+/* Reset margins and padding */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+}
+
+/* Trending Posts Section */
+.trending-posts {
+  background-color: #e0f7fa;
+  padding: 20px;
+  border-bottom: 2px solid #ccc;
+}
+
+.trending-posts h2 {
+  margin-top: 0;
+}
+
+.trending-container {
+  background-color: white;
+  padding: 15px;
+  border-radius: 5px;
+  min-height: 100px;
+}
+
+/* Main Content Layout */
+.main-content {
+  display: flex;
+  margin: 20px;
+  gap: 20px;
+}
+
+/* User Posts Section */
+.user-posts {
+  flex: 2; /* Takes up more space */
+  background-color: white;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.user-posts h2 {
+  margin-top: 0;
+}
+
+.posts-list p {
+  color: #555;
+}
+
+/* Sidebar */
+.sidebar {
+  flex: 1;
+  background-color: white;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+/* Search Box */
+.search-box input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* Topics List */
+.topics-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.topics-list ul li {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.topics-list ul li:last-child {
+  border-bottom: none;
+}
+
+/* CSS for the navbar in blog html */
+/* Blog Navbar */
+.blog-navbar {
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.blog-navbar-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* <-- Push links to far right */
+  height: 80px;
+  width: 100%;
+}
+
+.blog-navbar-menu li {
+  margin-left: 15px; /* Space BETWEEN links (since they're on the right now) */
+}
+
+.blog-navbar-menu li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s;
+  font-size: 1.2rem;
+  padding: 10px 5px;
+}
+
+.blog-navbar-menu li a:hover {
+  color: #00bcd4;
+  border: 2px solid #00bcd4;
+  border-radius: 5px;
+  padding: 8px 3px;
+}
+
+/* Adjust body padding to account for fixed navbar */
+body {
+  padding-top: 80px;
+}
+
+
