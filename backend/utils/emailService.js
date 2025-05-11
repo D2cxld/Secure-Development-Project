@@ -8,6 +8,10 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+console.log("ENV USER:", process.env.EMAIL_USER);
+console.log("ENV PASS length:", process.env.EMAIL_PASS?.length);
+
+
 function sendVerificationCode(email, code) {
   return transporter.sendMail({
     from: `"Wellbeing Blog" <${process.env.EMAIL_USER}>`,

@@ -35,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Submitting form with:", { first_name, surname, email, username, password });
 
     try {
-      const response = await fetch('/register', {
+      const endpoint = '/register'; // ✅ always submit to one route
+
+
+      const response = await fetch(endpoint, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

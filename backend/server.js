@@ -21,6 +21,8 @@ app.use('/login', require('./routes/auth'));
 // Routes
 app.use('/register', require('./routes/reg'));
 app.use('/2fa', require('./routes/2fa'));
+app.use('/admin', require('./routes/admin'));
+
 
 // Serve pages
 app.get('/register.html', (req, res) => {

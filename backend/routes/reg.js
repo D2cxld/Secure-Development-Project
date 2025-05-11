@@ -91,6 +91,7 @@ router.post('/', (req, res) => {
 
                     if (isAdmin) {
                       const code = Math.floor(100000 + Math.random() * 900000);
+                      // console.log("📨 Sending email to", email, "with code:", code);
                       console.log(`📧 Sending 2FA code to ${email}: ${code}`);
 
                       try {
