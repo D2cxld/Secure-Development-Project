@@ -5,8 +5,8 @@ require('dotenv').config();
 
 
 // Start server
-app.listen(5500, () => {
-    console.log("Server started on port 5500");
+app.listen(8000, "0.0.0.0", () => {
+    console.log("Server started on port 8000");
 });
 
 
@@ -17,6 +17,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/login', require('./routes/auth'));
 
+// Root route - redirect to register page
+app.get('/', (req, res) => {
+  res.redirect('/register.html');
+});
 
 // Routes
 app.use('/register', require('./routes/reg'));
