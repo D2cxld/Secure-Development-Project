@@ -29,38 +29,21 @@ transporter.verify((error, success) => {
 });
 
 /**
- * Send a verification code email for 2FA
+ * Send a verification code email for 2FA (MOCK VERSION FOR TESTING)
  * @param {string} email - The recipient's email address
  * @param {string|number} code - The 6-digit verification code
  * @returns {Promise} - The result of the email sending operation
  */
 function sendVerificationCode(email, code) {
-  return new Promise((resolve, reject) => {
-    transporter.sendMail({
-      from: `"Wellbeing Blog" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your 2FA Verification Code',
-      text: `Your 2FA code is: ${code}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 5px;">
-          <h2 style="color: #333;">Your Verification Code</h2>
-          <p>Use the following code to complete your registration or login:</p>
-          <div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; margin: 20px 0; border-radius: 4px;">
-            ${code}
-          </div>
-          <p style="color: #777; font-size: 14px;">This code will expire in 10 minutes for security purposes.</p>
-          <p style="color: #777; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-        </div>
-      `
-    }, (error, info) => {
-      if (error) {
-        console.error('❌ Failed to send email:', error);
-        reject(error);
-      } else {
-        console.log('✅ Email sent successfully:', info.response);
-        resolve(info);
-      }
-    });
+  return new Promise((resolve) => {
+    console.log('======================================');
+    console.log('📧 MOCK EMAIL SENT');
+    console.log(`📧 To: ${email}`);
+    console.log(`📧 Verification Code: ${code}`);
+    console.log('======================================');
+
+    // Always resolve successfully
+    resolve({ response: 'Mock email sent successfully' });
   });
 }
 
