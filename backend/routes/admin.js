@@ -1,65 +1,157 @@
-// backend/routes/reg.js (simplified for admin 2FA flow)
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const sendVerificationCode = require('../utils/emailService');
+const twoFAManager = require('../utils/twoFAManager');
+const db = require('../utils/dbConfig');
 const PEPPER = process.env.PEPPER;
 
-const mysql = require('mysql');
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '23Benedict:)',
-  database: 'secureblog_roles_v2',
-  port: 3306
-});
+// === Add an admin to the whitelist ===
+router.post('/whitelist', async (req, res) => {
+  const { email, approved_by } = req.body;
 
-// Handle admin registration step (store in session, send email)
-router.post('/admin-temp', async (req, res) => {
-  const { first_name, surname, email, username, password } = req.body;
-  const code = Math.floor(100000 + Math.random() * 900000);
+  if (!email || !approved_by) {
+    return res.status(400).send('❌ Email and approver username are required');
+  }
 
   try {
-    req.session.tempAdmin = { first_name, surname, email, username, password };
-    req.session.adminCode = code;
-    await sendVerificationCode(email, code);
-    res.status(200).json({ message: '✅ Code sent', isAdmin: true });
-  } catch (err) {
-    console.error('❌ Failed to send 2FA email:', err);
-    res.status(500).send('❌ Email error');
+    // Check if approver exists and is an admin or superadmin
+    const approverCheck = await db.query(
+      'SELECT role FROM user_login WHERE username = $1 AND (role = $2 OR role = $3)',
+      [approved_by, 'admin', 'superadmin']
+    );
+
+    if (approverCheck.rows.length === 0) {
+      return res.status(403).send('❌ Only admins can add to the whitelist');
+    }
+
+    // Check if email is already in whitelist
+    const existingCheck = await db.query(
+      'SELECT * FROM admin_whitelist WHERE email = $1',
+      [email]
+    );
+
+    if (existingCheck.rows.length > 0) {
+      return res.status(409).send('❌ Email already in whitelist');
+    }
+
+    // Add to whitelist
+    await db.query(
+      'INSERT INTO admin_whitelist (email, approved_by) VALUES ($1, $2)',
+      [email, approved_by]
+    );
+
+    return res.status(200).send('✅ Email added to admin whitelist');
+  } catch (error) {
+    console.error('❌ Failed to update whitelist:', error);
+    return res.status(500).send('❌ Database error');
   }
 });
 
-// Verify code and commit to DB
-router.post('/admin-verify', async (req, res) => {
-  const { code } = req.body;
-  const temp = req.session.tempAdmin;
+// === Get whitelisted emails ===
+router.get('/whitelist', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT email, approved_by, created_at FROM admin_whitelist ORDER BY created_at DESC'
+    );
 
-  if (!temp || parseInt(code) !== req.session.adminCode) {
-    return res.status(401).send('❌ Invalid or expired code');
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('❌ Failed to get whitelist:', error);
+    return res.status(500).send('❌ Database error');
+  }
+});
+
+// === Handle admin temporary registration (store data, send email) ===
+router.post('/admin-temp', async (req, res) => {
+  const { first_name, surname, email, username, password } = req.body;
+
+  if (!first_name || !surname || !email || !username || !password) {
+    return res.status(400).send('❌ All fields are required');
   }
 
-  const hash = await bcrypt.hash(temp.password + PEPPER, 10);
+  try {
+    // Check whitelist
+    const whitelistCheck = await db.query(
+      'SELECT * FROM admin_whitelist WHERE email = $1',
+      [email]
+    );
 
-  connection.query(
-    'INSERT INTO user_login (username, email, password_hash, role, uses_2fa) VALUES (?, ?, ?, ?, ?)',
-    [temp.username, temp.email, hash, 'admin', 1],
-    (err) => {
-      if (err) return res.status(500).send('❌ DB error');
-
-      connection.query(
-        'INSERT INTO user_profile (username, first_name, surname) VALUES (?, ?, ?)',
-        [temp.username, temp.first_name, temp.surname],
-        (err) => {
-          if (err) return res.status(500).send('✅ Login created, profile failed');
-
-          delete req.session.tempAdmin;
-          delete req.session.adminCode;
-          return res.status(200).send('✅ Admin registered');
-        }
-      );
+    if (whitelistCheck.rows.length === 0) {
+      return res.status(403).send('❌ Email not in admin whitelist');
     }
-  );
+
+    // Generate verification code
+    const code = twoFAManager.generateCode();
+
+    // Hash password
+    const hash = await bcrypt.hash(password + PEPPER, 10);
+
+    // Store temporary admin data
+    await twoFAManager.storeCode(username, email, code, {
+      first_name,
+      surname,
+      password_hash: hash
+    });
+
+    // Send verification code
+    await sendVerificationCode(email, code);
+
+    return res.status(200).json({
+      message: '✅ Verification code sent to your email',
+      isAdmin: true,
+      username
+    });
+  } catch (error) {
+    console.error('❌ Failed to process admin registration:', error);
+    return res.status(500).send('❌ Server error');
+  }
+});
+
+// === Admin dashboard data ===
+router.get('/dashboard', async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).send('❌ Username is required');
+  }
+
+  try {
+    // Verify user is an admin
+    const adminCheck = await db.query(
+      'SELECT role FROM user_login WHERE username = $1 AND (role = $2 OR role = $3)',
+      [username, 'admin', 'superadmin']
+    );
+
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).send('❌ Admin access required');
+    }
+
+    // Get user stats
+    const userStats = await db.query(`
+      SELECT
+        COUNT(*) AS total_users,
+        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admin_count,
+        SUM(CASE WHEN uses_2fa = true THEN 1 ELSE 0 END) AS users_with_2fa
+      FROM user_login
+    `);
+
+    // Get recent registrations
+    const recentUsers = await db.query(`
+      SELECT username, email, role, created_at
+      FROM user_login
+      ORDER BY created_at DESC
+      LIMIT 5
+    `);
+
+    return res.status(200).json({
+      stats: userStats.rows[0],
+      recentUsers: recentUsers.rows
+    });
+  } catch (error) {
+    console.error('❌ Failed to get admin dashboard data:', error);
+    return res.status(500).send('❌ Database error');
+  }
 });
 
 module.exports = router;

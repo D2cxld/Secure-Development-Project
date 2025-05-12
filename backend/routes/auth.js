@@ -1,76 +1,123 @@
 require('dotenv').config();
 const PEPPER = process.env.PEPPER;
-const express = require('express'); 
+const express = require('express');
 const bcrypt = require('bcrypt');
-const mysql = require('mysql');
 const router = express.Router();
+const db = require('../utils/dbConfig');
+const twoFAManager = require('../utils/twoFAManager');
+const sendVerificationCode = require('../utils/emailService');
 
-// SQL connection config - changed to be able to access MY SQL without issues...new dev/blog user implemented and good practice too on separate MySql tab
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '23Benedict:)',
-  database: 'secureblog_roles_v2',
-  port: 3306
-});
-
-router.post('/', (req, res) => {
+// === Login handler ===
+router.post('/', async (req, res) => {
   const { username, password } = req.body;
   console.log("✅ DB connected, attempting login for:", username);
 
-// Newly added router post
-router.post('/set-2fa-preference', (req, res) => {
+  try {
+    // Find user
+    const result = await db.query(
+      'SELECT * FROM user_login WHERE username = $1',
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).send('❌ Invalid credentials');
+    }
+
+    const user = result.rows[0];
+
+    // Verify password
+    const match = await bcrypt.compare(password + PEPPER, user.password_hash);
+
+    if (!match) {
+      console.log("❌ Password mismatch for user:", username);
+      return res.status(401).send('❌ Invalid credentials');
+    }
+
+    console.log("✅ Password match! Logged in:", user.username);
+
+    // Check if 2FA is required
+    if (user.uses_2fa) {
+      // Generate and send 2FA code
+      const code = twoFAManager.generateCode();
+      await twoFAManager.storeCode(user.username, user.email, code);
+      await sendVerificationCode(user.email, code);
+
+      return res.status(200).json({
+        message: '✅ 2FA code sent to your email',
+        needs2FA: true,
+        username: user.username,
+        email: user.email
+      });
+    }
+
+    // Regular login (no 2FA)
+    return res.status(200).json({
+      message: '✅ Login successful',
+      role: user.role,
+      username: user.username
+    });
+  } catch (error) {
+    console.error('❌ Database error during login:', error);
+    return res.status(500).send('❌ Server error during login');
+  }
+});
+
+// === 2FA preference update ===
+router.post('/set-2fa-preference', async (req, res) => {
   const { username, uses2FA } = req.body;
 
-  connection.query(
-    'UPDATE user_login SET uses_2fa = ? WHERE username = ?',
-    [uses2FA, username],
-    (err) => {
-      if (err) {
-        console.error('❌ Failed to update 2FA preference:', err.message);
-        return res.status(500).send('❌ Could not update preference.');
-      }
-      return res.status(200).send('✅ 2FA preference updated.');
+  try {
+    await db.query(
+      'UPDATE user_login SET uses_2fa = $1 WHERE username = $2',
+      [uses2FA, username]
+    );
+
+    return res.status(200).send('✅ 2FA preference updated.');
+  } catch (error) {
+    console.error('❌ Failed to update 2FA preference:', error.message);
+    return res.status(500).send('❌ Could not update preference.');
+  }
+});
+
+// === Login verification with 2FA ===
+router.post('/verify-2fa', async (req, res) => {
+  const { username, code } = req.body;
+
+  if (!username || !code) {
+    return res.status(400).send('❌ Username and code are required');
+  }
+
+  try {
+    const isValid = await twoFAManager.verifyCode(username, code);
+
+    if (!isValid) {
+      return res.status(401).send('❌ Invalid or expired verification code');
     }
-  );
-}); 
-  
-  connection.query(
-    'SELECT * FROM user_login WHERE username = ?',
-    [username],
-    (err, results) => {
-      if (err) {
-        console.error('❌ MySQL error:', err.message);
-        return res.status(500).send('❌ DB error');
-      }
 
-      if (results.length === 0) {
-        return res.status(401).send('❌ Invalid credentials');
-      }
+    // Get the user info now that 2FA is verified
+    const result = await db.query(
+      'SELECT role, username FROM user_login WHERE username = $1',
+      [username]
+    );
 
-      const user = results[0];
-      bcrypt.compare(password + PEPPER, user.password_hash, (err, match) => {
-        console.log("🧠 Comparing:");
-        console.log("Provided password (with pepper):", password + PEPPER);
-        console.log("Stored hash:", user.password_hash);
-
-        if (err) {
-          console.error('❌ Bcrypt error:', err.message);
-          return res.status(500).send('❌ Server error');
-        }
-
-        if (!match) {
-          console.log("❌ Password mismatch");
-          return res.status(401).send('❌ Invalid credentials');
-        }
-
-        console.log("✅ Password match! Logged in:", user.username);
-        return res.json({ role: user.role, username: user.username });
-      });
-
-      
+    if (result.rows.length === 0) {
+      return res.status(404).send('❌ User not found');
     }
-  );
+
+    const user = result.rows[0];
+
+    // Clean up the 2FA code
+    await twoFAManager.deleteTemporaryData(username);
+
+    return res.status(200).json({
+      message: '✅ Login successful',
+      role: user.role,
+      username: user.username
+    });
+  } catch (error) {
+    console.error('❌ Error during 2FA verification:', error);
+    return res.status(500).send('❌ Server error during verification');
+  }
 });
 
 module.exports = router;

@@ -4,26 +4,108 @@
   <meta charset="UTF-8">
   <title>2FA Verification</title>
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .error {
+      color: red;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    .success {
+      color: green;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #resendBtn {
+      background-color: #2196F3;
+      margin-left: 10px;
+    }
+    #resendBtn:hover {
+      background-color: #0b7dda;
+    }
+    #skipBtn {
+      background-color: #f44336;
+    }
+    #skipBtn:hover {
+      background-color: #d32f2f;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+      letter-spacing: 3px;
+    }
+  </style>
 </head>
 <body>
-  <h2 id="2fa-heading">Two-Factor Authentication</h2>
+  <div class="container">
+    <h2 id="2fa-heading">Two-Factor Authentication</h2>
 
-  <form id="twofa-form">
-    <label id="2fa-label" for="code">Enter the 6-digit code sent to your device:</label>
-    <input type="text" id="code" name="code" maxlength="6" required>
-    <div id="codeError" class="error"></div>
-    <button type="submit">Verify</button>
-  </form>
+    <form id="twofa-form">
+      <div class="form-group">
+        <label id="2fa-label" for="code">Enter the 6-digit code sent to your email:</label>
+        <input type="text" id="code" name="code" maxlength="6" minlength="6" required>
+        <div id="codeError" class="error"></div>
+        <div id="codeSuccess" class="success"></div>
+      </div>
+      <div class="button-group">
+        <button type="submit">Verify</button>
+        <button type="button" id="resendBtn">Resend Code</button>
+      </div>
+    </form>
 
-  <button id="skipBtn" style="display: none;">Skip 2FA</button>
+    <button id="skipBtn" style="display: none;">Skip 2FA</button>
+  </div>
 
   <script>
+    // Get DOM elements
     const heading = document.getElementById('2fa-heading');
     const label = document.getElementById('2fa-label');
     const skipBtn = document.getElementById('skipBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    const errorDiv = document.getElementById('codeError');
+    const successDiv = document.getElementById('codeSuccess');
 
+    // Get session data
     const username = sessionStorage.getItem('username');
+    const email = sessionStorage.getItem('email');
     const optional2FA = window.location.search.includes('optional=true');
+
+    // Check if we have the necessary session data
+    if (!username) {
+      errorDiv.textContent = '❌ Session data missing. Please go back to registration.';
+      document.getElementById('twofa-form').style.display = 'none';
+      // Create a back button
+      const backBtn = document.createElement('button');
+      backBtn.textContent = 'Back to Registration';
+      backBtn.onclick = () => window.location.href = '/register.html';
+      document.querySelector('.container').appendChild(backBtn);
+    }
 
     // Optional 2FA UX
     if (optional2FA) {
@@ -32,23 +114,86 @@
       skipBtn.style.display = 'inline';
 
       skipBtn.addEventListener('click', async () => {
-        await fetch('/set-2fa-preference', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, uses2FA: false })
-        });
+        try {
+          const res = await fetch('/login/set-2fa-preference', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, uses2FA: false })
+          });
 
-        window.location.href = '/blog.html';
+          if (res.ok) {
+            window.location.href = '/blog.html';
+          } else {
+            const error = await res.text();
+            errorDiv.textContent = error || '❌ Failed to update 2FA preference';
+          }
+        } catch (err) {
+          console.error('Error skipping 2FA:', err);
+          errorDiv.textContent = '❌ Server error when skipping 2FA';
+        }
       });
     }
+
+    // Resend code
+    resendBtn.addEventListener('click', async () => {
+      if (!username || !email) {
+        errorDiv.textContent = '❌ Missing username or email information';
+        return;
+      }
+
+      try {
+        errorDiv.textContent = '';
+        successDiv.textContent = '';
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Sending...';
+
+        const res = await fetch('/2fa/resend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email })
+        });
+
+        const result = await res.text();
+
+        if (res.ok) {
+          successDiv.textContent = '✅ New verification code sent';
+        } else {
+          errorDiv.textContent = result || '❌ Failed to resend code';
+        }
+      } catch (err) {
+        console.error('Error resending code:', err);
+        errorDiv.textContent = '❌ Server error when resending code';
+      } finally {
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend Code';
+
+        // Disable resend button for 30 seconds to prevent abuse
+        setTimeout(() => {
+          resendBtn.disabled = false;
+        }, 30000);
+      }
+    });
 
     // Code submit
     document.getElementById('twofa-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const code = document.getElementById('code').value.trim();
-      const errorDiv = document.getElementById('codeError');
+
+      // Clear previous messages
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      // Basic validation
+      if (code.length !== 6 || !/^\d+$/.test(code)) {
+        errorDiv.textContent = '❌ Code must be 6 digits';
+        return;
+      }
 
       try {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
+
         const res = await fetch('/2fa/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -56,15 +201,26 @@
         });
 
         const result = await res.text();
+
         if (res.ok) {
-          alert(result);
-          window.location.href = '/blog.html';
+          successDiv.textContent = '✅ ' + result;
+          // Clear session storage items we don't need anymore
+          sessionStorage.removeItem('needsVerification');
+
+          // Redirect after a short delay to show the success message
+          setTimeout(() => {
+            window.location.href = '/blog.html';
+          }, 1500);
         } else {
-          errorDiv.textContent = result;
+          errorDiv.textContent = result || '❌ Verification failed';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Verify';
         }
       } catch (err) {
         console.error('Error verifying 2FA:', err);
-        errorDiv.textContent = '⚠️ Server error. Try again.';
+        errorDiv.textContent = '❌ Server error. Try again.';
+        document.querySelector('button[type="submit"]').disabled = false;
+        document.querySelector('button[type="submit"]').textContent = 'Verify';
       }
     });
   </script>

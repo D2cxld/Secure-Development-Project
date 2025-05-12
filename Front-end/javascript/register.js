@@ -14,10 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const passwordError = document.getElementById('passwordError');
     const emailError = document.getElementById('emailStatus');
+    const formError = document.getElementById('formError') || passwordError; // Fallback to passwordError if formError isn't present
 
     // Clear errors
     passwordError.textContent = '';
     emailError.textContent = '';
+    if (formError !== passwordError) formError.textContent = '';
 
     // Email format check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,14 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    console.log("Submitting form with:", { first_name, surname, email, username, password });
+    console.log("Submitting form with:", { first_name, surname, email, username });
 
     try {
-      const endpoint = '/register'; // ✅ always submit to one route
+      const submitBtn = document.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Registering...';
 
-
-      const response = await fetch(endpoint, {
-
+      const response = await fetch('/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -47,26 +49,55 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ first_name, surname, email, username, password })
       });
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        // Handle case where response is not JSON
+        const textResult = await response.text();
+        result = { message: textResult };
+      }
 
       if (!response.ok) {
-        passwordError.textContent = result.message || '❌ Registration failed.';
+        formError.textContent = result.message || '❌ Registration failed.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Register';
         return;
       }
 
       console.log("Result:", result);
-      alert(result.message);
 
-      if (response.ok) {
-        if (result.isAdmin) {
-          window.location.href = '/2fa.html';
-        } else {
-          window.location.href = '/blog.html';
-        }
+      // Store user information in sessionStorage for 2FA
+      if (result.username) {
+        sessionStorage.setItem('username', result.username);
+      }
+
+      if (email) {
+        sessionStorage.setItem('email', email);
+      }
+
+      if (result.needs2FA) {
+        sessionStorage.setItem('needsVerification', 'true');
+      }
+
+      // Display success message
+      if (result.message) {
+        alert(result.message);
+      }
+
+      // Handle redirection
+      if (result.isAdmin && result.needs2FA) {
+        window.location.href = '/2fa.html';
+      } else {
+        window.location.href = '/blog.html';
       }
     } catch (error) {
       console.error('Error submitting registration:', error);
-      alert('⚠️ Error submitting registration form');
+      formError.textContent = '⚠️ Error submitting registration form';
+
+      const submitBtn = document.querySelector('button[type="submit"]');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register';
     }
   });
 
@@ -80,6 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
       usernameStatus.textContent = '';
       return;
     }
+
+    if (username.length < 3) {
+      usernameStatus.style.color = 'red';
+      usernameStatus.textContent = '❌ Username must be at least 3 characters';
+      return;
+    }
+
+    usernameStatus.textContent = '⏳ Checking...';
+
     try {
       const res = await fetch(`/register/check-username?username=${encodeURIComponent(username)}`);
       const data = await res.json();
@@ -106,6 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
       emailStatus.textContent = '';
       return;
     }
+
+    // Basic email format check before making API call
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      emailStatus.style.color = 'red';
+      emailStatus.textContent = '❌ Invalid email format';
+      return;
+    }
+
+    emailStatus.textContent = '⏳ Checking...';
+
     try {
       const res = await fetch(`/register/check-email?email=${encodeURIComponent(email)}`);
       const data = await res.json();
@@ -121,4 +172,41 @@ document.addEventListener('DOMContentLoaded', () => {
       emailStatus.textContent = '⚠️ Error checking email';
     }
   });
+
+  // Password strength meter
+  const passwordInput = document.getElementById('password');
+  const strengthMeter = document.getElementById('passwordStrength');
+
+  if (passwordInput && strengthMeter) {
+    passwordInput.addEventListener('input', function() {
+      const password = this.value;
+      let strength = 0;
+      let feedback = '';
+
+      // Length check
+      if (password.length >= 8) {
+        strength += 1;
+      }
+
+      // Complexity checks
+      if (/[A-Z]/.test(password)) strength += 1; // Has uppercase
+      if (/[a-z]/.test(password)) strength += 1; // Has lowercase
+      if (/[0-9]/.test(password)) strength += 1; // Has number
+      if (/[^A-Za-z0-9]/.test(password)) strength += 1; // Has special char
+
+      // Update UI based on strength
+      if (password.length === 0) {
+        strengthMeter.textContent = '';
+      } else if (strength < 2) {
+        strengthMeter.style.color = 'red';
+        strengthMeter.textContent = 'Weak';
+      } else if (strength < 4) {
+        strengthMeter.style.color = 'orange';
+        strengthMeter.textContent = 'Medium';
+      } else {
+        strengthMeter.style.color = 'green';
+        strengthMeter.textContent = 'Strong';
+      }
+    });
+  }
 });
