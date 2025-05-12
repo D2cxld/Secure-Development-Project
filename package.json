@@ -7,8 +7,13 @@
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "setup": "node setup-postgres.js",
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:coverage": "jest --coverage",
     "test-email": "node backend/utils/testEmail.js",
-    "migrate": "node db/migrations/runPostgresMigrations.js"
+    "migrate": "node db/migrations/runPostgresMigrations.js",
+    "db-explore": "node db-explorer.js"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +26,8 @@
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
     "pg": "^8.15.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
