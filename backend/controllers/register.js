@@ -1,6 +1,6 @@
 
 const mysql = require('mysql');
-// const bcrypt = require('bcrypt'); (optional if you want to hash passwords)
+// const bcrypt = require('bcryptjs'); (optional if you want to hash passwords)
 
 const connection = mysql.createConnection({
     host: 'localhost', 

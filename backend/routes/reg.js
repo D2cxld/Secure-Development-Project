@@ -5,7 +5,7 @@ const PEPPER = process.env.PEPPER;
 
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const db = require('../utils/dbConfig');
 const sendVerificationCode = require('../utils/emailService');
 const twoFAManager = require('../utils/twoFAManager');
@@ -20,7 +20,18 @@ console.log("🧠 Blacklist loaded with", passwordBlacklist.length, "common pass
 
 // === Registration handler ===
 router.post('/', async (req, res) => {
+  console.log('Registration request received:', req.body);  // Debigging
+  
   const { first_name, surname, email, username, password: rawPassword, role = 'user' } = req.body;
+  
+  console.log('Extracted fields:', {  // Debugging
+    first_name, 
+    surname, 
+    email, 
+    username, 
+    password_length: rawPassword?.length 
+  });
+  
   const password = rawPassword.trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

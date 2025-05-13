@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const sendVerificationCode = require('../utils/emailService');
 const twoFAManager = require('../utils/twoFAManager');
 const db = require('../utils/dbConfig');

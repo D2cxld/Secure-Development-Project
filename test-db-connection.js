@@ -1,27 +1,40 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const db = require('./backend/utils/dbConfig');
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'secureblog_roles_v2'
-});
-
-async function testConnection() {
+async function testDatabaseConnection() {
   try {
-    const client = await pool.connect();
-    console.log('Connected to PostgreSQL successfully!');
+    console.log('🔍 Testing PostgreSQL connection...');
     
-    const result = await client.query('SELECT NOW()');
-    console.log('Current time from DB:', result.rows[0].now);
+    // Test basic connection
+    const result = await db.query('SELECT NOW() as time');
+    console.log('✅ Database connection successful!');
+    console.log('Current database time:', result.rows[0].time);
+
+    // Test tables exist
+    console.log('\n📊 Checking database tables...');
+    const tablesResult = await db.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `);
     
-    client.release();
-    await pool.end();
-  } catch (err) {
-    console.error('Error connecting to PostgreSQL:', err);
+    if (tablesResult.rows.length === 0) {
+      console.log('❌ No tables found in the database!');
+    } else {
+      console.log('✅ Found these tables:');
+      tablesResult.rows.forEach(row => {
+        console.log(`  - ${row.table_name}`);
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection error:', error);
+    console.error('Details:', error.message);
+    return false;
+  } finally {
+    // Close the connection pool
+    db.pool.end();
   }
 }
 
-testConnection();
+testDatabaseConnection();

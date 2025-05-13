@@ -27,6 +27,9 @@ app.use('/register', require('./routes/reg'));
 app.use('/2fa', require('./routes/2fa'));
 app.use('/admin', require('./routes/admin'));
 
+// Additional for server.js adding new protected user routes without replacing anything
+app.use('/api/user', require('./routes/user'));
+
 
 // Serve pages
 app.get('/register.html', (req, res) => {
