@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 5500
 
-CMD ["node", "backend/server.js"]
+CMD ["node", "backend/server-docker.js"]
