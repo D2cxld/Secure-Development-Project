@@ -9,7 +9,7 @@ const testUser = {
   username: 'testuser',
   email: 'test@example.com',
   password: 'TestPass123!',
-  firstname: 'Test',
+  first_name: 'Test', // Changed from firstname to first_name
   surname: 'User'
 };
 

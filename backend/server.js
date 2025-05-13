@@ -1,20 +1,47 @@
 const express = require("express");
 const app = express();
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 require('dotenv').config();
 
 
+// Set port from environment or default to 5500 to match README
+const PORT = process.env.PORT || 3000;
+
 // Start server
-app.listen(8000, "0.0.0.0", () => {
-    console.log("Server started on port 8000");
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server started on port ${PORT}`);
 });
 
 
 // Middleware
 const publicDirectory = path.join(__dirname, '../Front-end'); // <-- Corrected
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for development, enable in production
+  xssFilter: true,
+  noSniff: true,
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true
+  }
+}));
+
+// Body parsers
 app.use(express.static(publicDirectory));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cookieParser());
+
+// Log requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Auth routes
 app.use('/login', require('./routes/auth'));
 
 // Root route - redirect to register page
@@ -55,8 +82,14 @@ app.get('/styles.css', (req, res) => {
     res.sendFile(path.join(__dirname, '../Front-end', 'styles.css')); //same change if needed to revert
   });  
 
-// Serve JavaScript
-app.get('/js/register.js', (req, res) => {
+// Serve JavaScript files
+app.get('/javascript/register.js', (req, res) => {
     res.type('text/javascript');
-    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js')); //same change if needed to revert
-  });
+    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js')); 
+});
+
+// Serve blog.js
+app.get('/javascript/blog.js', (req, res) => {
+    res.type('text/javascript');
+    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'blog.js')); 
+});
