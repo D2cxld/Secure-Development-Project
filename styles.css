@@ -220,4 +220,59 @@ body {
   padding-top: 80px;
 }
 
+/*Blog post stlye */
+/* Blog post form container */
+.blog-post-form-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.blog-post-form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+/* Blog post form styles */
+.blog-post-form label {
+  display: block;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.blog-post-form input[type="text"],
+.blog-post-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.blog-post-form textarea {
+  resize: vertical;
+}
+
+.blog-post-form button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #00bcd4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.blog-post-form button:hover {
+  background-color: #0097a7;
+}
+
 

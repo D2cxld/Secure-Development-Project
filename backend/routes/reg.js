@@ -14,9 +14,9 @@ const connection = mysql.createConnection({
 
 connection.connect((error) => {
     if (error) {
-        console.error('Error connecting to MySQL:', error);
+        console.error('Error connecting to Postgresql:', error);
     } else {
-        console.log('Connected to MySQL (routes/reg.js)');
+        console.log('Connected to Postgresql (routes/reg.js)');
     }
 });
 
