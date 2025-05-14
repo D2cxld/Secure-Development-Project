@@ -1,4 +1,10 @@
-const axios = require('axios');
+/**
+   * Simple Registration Test
+   *
+   * Tests the registration form submission without database operations
+   */
+
+  const axios = require('axios');
   require('dotenv').config();
 
   // Configuration
