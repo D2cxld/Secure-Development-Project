@@ -1,31 +1,45 @@
-File: /backend/middleware/csrfInjection.js
-  /**
-   * CSRF Token Injection Middleware
-   *
-   * This middleware injects CSRF tokens into HTML forms when serving HTML content.
-   * It looks for </form> tags and injects a hidden input field with the CSRF token.
+/**
+   * CSRF Injection Middleware
+   * Injects CSRF tokens into HTML responses
    */
-
-  module.exports = function(req, res, next) {
-    // Store the original send function
+  const csrfInjection = (req, res, next) => {
+    // Store original res.send
     const originalSend = res.send;
 
-    // Override the send function
+    // Override res.send for HTML responses
     res.send = function(body) {
       // Only process HTML responses
-      if (typeof body === 'string' &&
-          res.getHeader('content-type')?.includes('text/html') &&
-          res.locals.csrfToken) {
+      if (typeof body === 'string' && body.includes('<!DOCTYPE html>')) {
+        // Look for </head> tag
+        const csrfToken = req.cookies.csrf_token || '';
 
-        // Inject CSRF token into all forms
-        body = body.replace(/<\/form>/gi, `
-          <input type="hidden" name="csrf_token" value="${res.locals.csrfToken}">
-        </form>`);
+        // Add meta tag with CSRF token
+        if (csrfToken && body.includes('</head>')) {
+          body = body.replace(
+            '</head>',
+            `<meta name="csrf-token" content="${csrfToken}">
+  </head>`
+          );
+        }
+
+        // Add token to forms
+        if (csrfToken && body.includes('<form')) {
+          // Careful with the regex here - this is likely where your error is
+          body = body.replace(
+            /<form([^>]*)>/g,  // Fixed regex that should work
+            (match) => {
+              return match.replace('>', `>
+  <input type="hidden" name="csrf_token" value="${csrfToken}">`);
+            }
+          );
+        }
       }
 
-      // Call the original send function
+      // Call original send with modified or original body
       return originalSend.call(this, body);
     };
 
     next();
   };
+
+  module.exports = csrfInjection;

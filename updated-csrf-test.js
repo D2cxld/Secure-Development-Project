@@ -1,17 +1,8 @@
-/**
-   * Test script to verify CSRF protection
-   *
-   * This script demonstrates how CSRF protection works by:
-   * 1. Making a GET request to get a CSRF token cookie
-   * 2. Showing how a request with a valid CSRF token succeeds
-   * 3. Showing how a request without a CSRF token fails
-   */
-
-  const axios = require('axios');
+const axios = require('axios');
   const { parse: parseCookie } = require('cookie');
 
   // Configuration
-  const API_URL = 'http://localhost:3000'; // Updated to match your current server port
+  const API_URL = 'http://localhost:5500'; // Updated to match your Docker port mapping
 
   // Set timeout to allow for slower connections
   axios.defaults.timeout = 10000; // 10 seconds
