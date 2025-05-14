@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
     console.log("register.js loaded");
 
     // Password match + email check
@@ -93,6 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         console.log("Registration successful:", result);
+
+        // Store the token
+        if (result.token) {
+          sessionStorage.setItem('token', result.token);
+          console.log("Token stored in session storage");
+        }
 
         // Store user information in sessionStorage for 2FA
         if (result.username) {

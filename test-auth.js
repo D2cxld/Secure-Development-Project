@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Configuration
-const API_URL = 'http://localhost:8000'; // Change if using a different port
+const API_URL = 'http://localhost:5500'; // Using port 5500 as per Docker configuration
 let authToken = '';
 
 // Test user credentials

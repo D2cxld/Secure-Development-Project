@@ -83,6 +83,18 @@
   </div>
 
   <script>
+    // Helper function to get cookies
+    function getCookie(name) {
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) {
+          return cookieValue;
+        }
+      }
+      return '';
+    }
+    
     // Get DOM elements
     const heading = document.getElementById('2fa-heading');
     const label = document.getElementById('2fa-label');
@@ -93,7 +105,8 @@
 
     // Get session data
     const username = sessionStorage.getItem('username');
-    const email = sessionStorage.getItem('email');
+    const email = sessionStorage.getItem('userEmail'); // Updated to match what we set in login page
+    const preAuthToken = sessionStorage.getItem('preAuthToken');
     const optional2FA = window.location.search.includes('optional=true');
 
     // Check if we have the necessary session data
@@ -147,10 +160,13 @@
         resendBtn.disabled = true;
         resendBtn.textContent = 'Sending...';
 
+        // Get CSRF token
+        const csrfToken = getCookie('csrf_token');
+
         const res = await fetch('/2fa/resend', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email })
+          body: JSON.stringify({ username, email, csrf_token: csrfToken })
         });
 
         const result = await res.text();
@@ -194,25 +210,70 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Verifying...';
 
-        const res = await fetch('/2fa/verify', {
+        // Get CSRF token from cookie
+        const csrfToken = getCookie('csrf_token');
+        
+        // For login 2FA verification
+        const endpoint = preAuthToken ? '/login/verify-2fa' : '/2fa/verify';
+        
+        // Prepare request body
+        const requestBody = preAuthToken 
+          ? { username, code, preAuthToken, csrf_token: csrfToken }
+          : { username, code, csrf_token: csrfToken };
+          
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, code })
+          body: JSON.stringify(requestBody)
         });
 
-        const result = await res.text();
-
         if (res.ok) {
-          successDiv.textContent = '✅ ' + result;
+          // Try to parse as JSON first
+          let responseData;
+          try {
+            responseData = await res.json();
+            // Store JWT token if available
+            if (responseData.token) {
+              localStorage.setItem('authToken', responseData.token);
+            }
+            successDiv.textContent = '✅ Verification successful';
+          } catch (e) {
+            // If it's not JSON, treat as text
+            const result = await res.text();
+            successDiv.textContent = '✅ ' + result;
+          }
+          
           // Clear session storage items we don't need anymore
           sessionStorage.removeItem('needsVerification');
+          sessionStorage.removeItem('preAuthToken');
+          sessionStorage.removeItem('userEmail');
+
+          // Determine redirect target
+          let redirectTarget = '/blog.html';
+          
+          if (responseData && responseData.redirect) {
+            redirectTarget = responseData.redirect;
+          } else if (responseData && (responseData.role === 'admin' || responseData.role === 'superadmin')) {
+            redirectTarget = '/admin-dashboard.html';
+          }
 
           // Redirect after a short delay to show the success message
           setTimeout(() => {
-            window.location.href = '/blog.html';
+            window.location.href = redirectTarget;
           }, 1500);
         } else {
-          errorDiv.textContent = result || '❌ Verification failed';
+          try {
+            const errorData = await res.json();
+            errorDiv.textContent = errorData.message || '❌ Verification failed';
+          } catch (e) {
+            // If not JSON, try as text
+            try {
+              const result = await res.text();
+              errorDiv.textContent = result || '❌ Verification failed';
+            } catch (textError) {
+              errorDiv.textContent = '❌ Verification failed';
+            }
+          }
           submitBtn.disabled = false;
           submitBtn.textContent = 'Verify';
         }

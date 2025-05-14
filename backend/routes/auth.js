@@ -8,6 +8,7 @@ const router = express.Router();
 const db = require('../utils/dbConfig');
 const twoFAManager = require('../utils/twoFAManager');
 const sendVerificationCode = require('../utils/emailService');
+const { csrfProtection } = require('../utils/csrfUtils');
 
 // Generate JWT token
 const generateToken = (user) => {
@@ -23,7 +24,7 @@ const generateToken = (user) => {
 };
 
 // === Login handler ===
-router.post('/', async (req, res) => {
+router.post('/', csrfProtection, async (req, res) => {
   const { username, password } = req.body;
   console.log("✅ DB connected, attempting login for:", username);
 
@@ -93,7 +94,8 @@ router.post('/', async (req, res) => {
       message: '✅ Login successful',
       role: user.role,
       username: user.username,
-      token
+      token,
+      redirect: user.role === 'admin' || user.role === 'superadmin' ? '/admin-dashboard.html' : '/blog.html'
     });
   } catch (error) {
     console.error('❌ Database error during login:', error);
@@ -105,7 +107,7 @@ router.post('/', async (req, res) => {
 });
 
 // === 2FA preference update ===
-router.post('/set-2fa-preference', async (req, res) => {
+router.post('/set-2fa-preference', csrfProtection, async (req, res) => {
   const { username, uses2FA } = req.body;
 
   try {
@@ -128,7 +130,7 @@ router.post('/set-2fa-preference', async (req, res) => {
 });
 
 // === Login verification with 2FA ===
-router.post('/verify-2fa', async (req, res) => {
+router.post('/verify-2fa', csrfProtection, async (req, res) => {
   const { username, code, preAuthToken } = req.body;
 
   if (!username || !code) {
@@ -188,7 +190,8 @@ router.post('/verify-2fa', async (req, res) => {
       message: '✅ Login successful',
       role: user.role,
       username: user.username,
-      token
+      token,
+      redirect: user.role === 'admin' || user.role === 'superadmin' ? '/admin-dashboard.html' : '/blog.html'
     });
   } catch (error) {
     console.error('❌ Error during 2FA verification:', error);

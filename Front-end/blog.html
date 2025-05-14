@@ -1,56 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Wellbeing Blog - Dashboard</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <header>
-    <h1>Secure Wellbeing Blog</h1>
-    <div class="user-info">
-      <span id="userWelcome">Welcome!</span>
-      <button id="logoutBtn">Logout</button>
-    </div>
-  </header>
+ Update Front-end/blog.html with:
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Wellbeing Blog - Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header>
+      <h1>Secure Wellbeing Blog</h1>
+      <div class="user-info">
+        <span id="userWelcome">Welcome!</span>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
 
-  <main>
-    <p>This is a private area for registered users.</p>
+    <main>
+      <p>This is a private area for registered users.</p>
 
-    <!-- All users can see this content -->
-    <div id="userActions">
-      <h2>Your Wellbeing Tips</h2>
-      <ul>
-        <li>Daily breathing exercises</li>
-        <li>Healthy lunch prep ideas</li>
-        <li>Sleep routine planner</li>
-      </ul>
-    </div>
+      <!-- All users can see this content -->
+      <div id="userActions">
+        <h2>Your Wellbeing Tips</h2>
+        <ul>
+          <li>Daily breathing exercises</li>
+          <li>Healthy lunch prep ideas</li>
+          <li>Sleep routine planner</li>
+        </ul>
+      </div>
 
-    <!-- Only admin and superadmin can see this -->
-    <div id="adminActions" style="display: none;">
-      <h2>Admin Controls</h2>
-      <button onclick="alert('Viewing audit logs')">View Audit Logs</button>
-      <button onclick="alert('Managing users')">Manage Users</button>
-    </div>
+      <!-- Only admin and superadmin can see this -->
+      <div id="adminActions" style="display: none;">
+        <h2>Admin Controls</h2>
+        <button onclick="alert('Viewing audit logs')">View Audit Logs</button>
+        <button onclick="alert('Managing users')">Manage Users</button>
+      </div>
 
-    <!-- Only superadmin can see this -->
-    <div id="superAdminActions" style="display: none;">
-      <h2>SuperAdmin Controls</h2>
-      <button onclick="alert('Managing admin whitelist')">Manage Admin Whitelist</button>
-      <button onclick="alert('System configuration')">System Configuration</button>
-    </div>
-  </main>
+      <!-- Only superadmin can see this -->
+      <div id="superAdminActions" style="display: none;">
+        <h2>SuperAdmin Controls</h2>
+        <button onclick="alert('Managing admin whitelist')">Manage Admin Whitelist</button>
+        <button onclick="alert('System configuration')">System Configuration</button>
+      </div>
+    </main>
 
-  <footer>
-    <p>For development/testing purposes only:</p>
-    <div class="test-controls">
-      <button onclick="showAdminPanel(true)">Show Admin Panel</button>
-      <button onclick="showAdminPanel(false)">Hide Admin Panel</button>
-    </div>
-  </footer>
+    <footer>
+      <p>For development/testing purposes only:</p>
+      <div class="test-controls">
+        <button onclick="showAdminPanel(true)">Show Admin Panel</button>
+        <button onclick="showAdminPanel(false)">Hide Admin Panel</button>
+      </div>
+    </footer>
 
-  <!-- Load authentication and role-based UI script -->
-  <script src="/javascript/blog.js"></script>
-</body>
-</html>
+    <!-- Load authentication and role-based UI script -->
+    <script src="/javascript/blog.js"></script>
+  </body>
+  </html>
+
+  3. Update server.js to serve blog.js
+
+  Find the JavaScript serving section in backend/server.js and update it to:
+  // Serve JavaScript files
+  app.get('/javascript/register.js', (req, res) => {
+      res.type('text/javascript');
+      res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js'));
+  });
+
+  // Serve blog.js
+  app.get('/javascript/blog.js', (req, res) => {
+      res.type('text/javascript');
+      res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'blog.js'));
+  });

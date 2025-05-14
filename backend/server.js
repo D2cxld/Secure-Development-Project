@@ -4,6 +4,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 require('dotenv').config();
+const { csrfMiddleware } = require('./utils/csrfUtils');
+const csrfInjection = require('./middleware/csrfInjection');
 
 
 // Set port from environment or default to 5500 to match README
@@ -35,6 +37,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
+// CSRF protection middleware - sets CSRF token as cookie and res.locals.csrfToken
+app.use(csrfMiddleware);
+
+// Inject CSRF tokens into HTML forms
+app.use(csrfInjection);
+
 // Log requests
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
@@ -57,6 +65,9 @@ app.use('/admin', require('./routes/admin'));
 // Additional for server.js adding new protected user routes without replacing anything
 app.use('/api/user', require('./routes/user'));
 
+// Admin API routes (protected by authentication and role-based access)
+app.use('/api/admin', require('./routes/admin-api'));
+
 
 // Serve pages
 app.get('/register.html', (req, res) => {
@@ -74,6 +85,11 @@ app.get('/blog.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../Front-end', 'itslogin.html'));
   });
   
+  // Serve admin dashboard page
+  app.get('/admin-dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../Front-end', 'admin-dashboard.html'));
+  });
+  
 
   
 // Serve static assets
@@ -85,11 +101,17 @@ app.get('/styles.css', (req, res) => {
 // Serve JavaScript files
 app.get('/javascript/register.js', (req, res) => {
     res.type('text/javascript');
-    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js')); 
-});
+    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js'));
+  });
 
 // Serve blog.js
 app.get('/javascript/blog.js', (req, res) => {
     res.type('text/javascript');
-    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'blog.js')); 
-});
+    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'blog.js'));
+  });
+
+// Serve admin-dashboard.js
+app.get('/javascript/admin-dashboard.js', (req, res) => {
+    res.type('text/javascript');
+    res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'admin-dashboard.js'));
+  });

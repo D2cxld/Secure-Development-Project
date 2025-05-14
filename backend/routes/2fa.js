@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const db = require('../utils/dbConfig');
 const twoFAManager = require('../utils/twoFAManager');
+const { csrfProtection } = require('../utils/csrfUtils');
 
 // === POST /2fa/verify ===
-router.post('/verify', async (req, res) => {
+router.post('/verify', csrfProtection, async (req, res) => {
   const { username, code } = req.body;
 
   if (!username || !code) {
@@ -69,7 +70,7 @@ router.post('/verify', async (req, res) => {
 });
 
 // === POST /2fa/resend ===
-router.post('/resend', async (req, res) => {
+router.post('/resend', csrfProtection, async (req, res) => {
   const { username, email } = req.body;
 
   if (!username || !email) {

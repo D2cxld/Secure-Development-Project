@@ -20,6 +20,7 @@
 | Password Validation | ✅ Pass | Enforces length, complexity, and blacklist |
 | Admin Whitelist | ✅ Pass | Only whitelisted emails can register as admin |
 | SMTP Security | ✅ Pass | Configured with SSL/TLS |
+| CSRF Protection | ✅ Pass | Implemented double-submit cookie pattern |
 | Session Security | ⏳ In Progress | Not fully implemented yet |
 
 ## Automated Test Results

@@ -1,63 +1,81 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../utils/dbConfig');
 const { authenticateToken, authorize } = require('../middleware/auth');
+const db = require('../utils/dbConfig');
 
-// Get user profile (requires authentication)
-router.get('/profile', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    // Get user profile data
-    const result = await db.query(
-      `SELECT u.username, u.email, u.role, p.first_name, p.surname 
-       FROM user_login u
-       LEFT JOIN user_profile p ON u.id = p.user_id
-       WHERE u.id = $1`,
-      [userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-    
-    return res.status(200).json({
-      success: true,
-      profile: result.rows[0]
+// Verify user token and return user info
+router.get('/verify', authenticateToken, async (req, res) => {
+try {
+    // Token is already verified by authenticateToken middleware
+    // req.user contains the decoded token data
+
+    // Return user info (without sensitive data)
+    res.json({
+    username: req.user.username,
+    role: req.user.role,
+    id: req.user.id
     });
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error fetching profile'
+} catch (error) {
+    console.error('⚠️ Error verifying user:', error);
+    res.status(500).json({
+    success: false,
+    message: '⚠️ Server error verifying user'
     });
-  }
+}
 });
 
-// Admin-only route (requires admin role)
-router.get('/all', authenticateToken, authorize(['admin', 'superadmin']), async (req, res) => {
-  try {
+// Get user profile (protected route)
+router.get('/profile', authenticateToken, async (req, res) => {
+try {
+    // Get user profile data from database
     const result = await db.query(
-      `SELECT u.id, u.username, u.email, u.role, p.first_name, p.surname 
-       FROM user_login u
-       LEFT JOIN user_profile p ON u.id = p.user_id
-       ORDER BY u.username`
+    'SELECT user_profile.* FROM user_profile WHERE username = $1',
+    [req.user.username]
     );
-    
-    return res.status(200).json({
-      success: true,
-      users: result.rows
+
+    if (result.rows.length === 0) {
+    return res.status(404).json({
+        success: false,
+        message: '⚠️ User profile not found'
     });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error fetching users'
+    }
+
+    // Return profile data
+    res.json({
+    success: true,
+    profile: result.rows[0]
     });
-  }
+} catch (error) {
+    console.error('⚠️ Error fetching profile:', error);
+    res.status(500).json({
+    success: false,
+    message: '⚠️ Server error fetching profile'
+    });
+}
+});
+
+// Admin-only route example (will only work for admin and superadmin roles)
+router.get('/admin-data', authenticateToken, authorize(['admin', 'superadmin']), (req, res) => {
+res.json({
+    success: true,
+    message: '! This is admin-only data',
+    data: {
+    sensitive: true,
+    adminAccess: true
+    }
+});
+});
+
+// Superadmin-only route example
+router.get('/superadmin-data', authenticateToken, authorize(['superadmin']), (req, res) => {
+res.json({
+    success: true,
+    message: '! This is superadmin-only data',
+    data: {
+    sensitive: true,
+    superAdminAccess: true
+    }
+});
 });
 
 module.exports = router;

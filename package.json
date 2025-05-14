@@ -10,8 +10,15 @@
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
+    "test:security": "jest tests/security",
     "test:coverage": "jest --coverage",
     "test-email": "node backend/utils/testEmail.js",
+    "test-csrf": "node test-csrf.js",
+    "test-csrf-direct": "node test-csrf-direct.js",
+    "test-csrf-http": "node test-csrf-http.js",
+    "test-connection": "node test-connection.js",
+    "test-2fa": "node test-2fa.js",
+    "test-admin": "node test-admin-dashboard.js",
     "migrate": "node db/migrations/runPostgresMigrations.js",
     "db-explore": "node db-explorer.js"
   },
@@ -22,6 +29,7 @@
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
+    "cookie": "^0.6.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -33,6 +41,7 @@
     "pg": "^8.16.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "cheerio": "^1.0.0-rc.12"
   }
 }
