@@ -1,4 +1,4 @@
- Update Front-end/blog.html with:
+
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -56,17 +56,4 @@
   </body>
   </html>
 
-  3. Update server.js to serve blog.js
-
-  Find the JavaScript serving section in backend/server.js and update it to:
-  // Serve JavaScript files
-  app.get('/javascript/register.js', (req, res) => {
-      res.type('text/javascript');
-      res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'register.js'));
-  });
-
-  // Serve blog.js
-  app.get('/javascript/blog.js', (req, res) => {
-      res.type('text/javascript');
-      res.sendFile(path.join(__dirname, '../Front-end', 'javascript', 'blog.js'));
-  });
+  
