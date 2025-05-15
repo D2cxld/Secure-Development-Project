@@ -7,17 +7,17 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-    <nav class="blog-navbar">
-        <ul class="blog-navbar-menu">
-          <li><a href="blogpage.html">Home</a></li>
-          <li><a href="post.html">Post blog</a></li>
-          <li><a href="#">Services</a></li>
-          <li><a href="usercontrol.html">Manage</a></li>
-          <li><a href="itslogin.html">Sign Out</a></li>
-          <li class="navbar-spacer"></li> <!-- This creates space to the far right -->
-        </ul>
-      </nav>
-      
+  <nav class="blog-navbar">
+    <ul class="blog-navbar-menu">
+      <li><a href="blog">Home</a></li>
+      <li><a href="post">Post blog</a></li>
+      <li><a href="#">Services</a></li>
+      <li><a href="user-control">Manage</a></li>
+      <li><a href="login">Sign Out</a></li>
+      <li class="navbar-spacer"></li> <!-- This creates space to the far right -->
+    </ul>
+  </nav>
+  
   <!-- Trending Posts Section -->
   <section class="trending-posts">
     <h2>Trending Posts</h2>
@@ -43,11 +43,10 @@
     <aside class="sidebar">
       
       <!-- Search Box -->
-     <div class="search-box">
-  <h3>Search</h3>
-  <input type="text" name="q" placeholder="Search blog...">
-</div>
-
+      <div class="search-box">
+        <h3>Search</h3>
+        <input type="text" name="q" placeholder="Search blog...">
+      </div>
 
       <!-- Topics List -->
       <div class="topics-list">
@@ -65,7 +64,102 @@
     </aside>
 
   </div>
-<script src="js/blogpage.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const response = await fetch('/posts'); // Adjust the path based on your routing
+        const posts = await response.json();
+
+        const userPostsContainer = document.querySelector('.posts-list');
+        const trendingContainer = document.querySelector('.trending-container');
+
+        // Clear default messages
+        userPostsContainer.innerHTML = '';
+        trendingContainer.innerHTML = '';
+
+        posts.forEach((post, index) => {
+          // Create user post block
+          const postBlock = document.createElement('div');
+          postBlock.classList.add('post');
+          postBlock.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.content}</p>
+            <small>Posted on: ${new Date(post.created_at).toLocaleDateString()}</small>
+          `;
+          userPostsContainer.appendChild(postBlock);
+
+          // Trending post block (first 5 posts or based on another logic)
+          if (index < 5) {
+            const trendBlock = document.createElement('div');
+            trendBlock.classList.add('trending-post');
+            trendBlock.innerHTML = `
+              <h4>${post.title}</h4>
+              <p>${post.content.substring(0, 80)}...</p>
+              <small>${new Date(post.created_at).toLocaleDateString()}</small>
+            `;
+            trendingContainer.appendChild(trendBlock);
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load posts:', err);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.querySelector('.search-box input');
+      const postsList = document.querySelector('.posts-list');
+      const trendingList = document.querySelector('.trending-container');
+
+      async function fetchAndDisplayPosts(query = '') {
+        try {
+          const response = await fetch(`/posts?q=${encodeURIComponent(query)}`);
+          const posts = await response.json();
+
+          postsList.innerHTML = '';
+          trendingList.innerHTML = '';
+
+          if (posts.length === 0) {
+            postsList.innerHTML = '<p>No posts found.</p>';
+            return;
+          }
+
+          posts.forEach((post, index) => {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+            postDiv.innerHTML = `
+              <h3>${post.title}</h3>
+              <p>${post.content}</p>
+              <small>Posted on: ${new Date(post.created_at).toLocaleDateString()}</small>
+            `;
+            postsList.appendChild(postDiv);
+
+            if (index < 5) {
+              const trendDiv = document.createElement('div');
+              trendDiv.classList.add('trending-post');
+              trendDiv.innerHTML = `
+                <h4>${post.title}</h4>
+                <p>${post.content.substring(0, 80)}...</p>
+                <small>${new Date(post.created_at).toLocaleDateString()}</small>
+              `;
+              trendingList.appendChild(trendDiv);
+            }
+          });
+        } catch (err) {
+          console.error('Search failed:', err);
+        }
+      }
+
+      // Load all posts on page load
+      fetchAndDisplayPosts();
+
+      // Update on input
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        fetchAndDisplayPosts(query);
+      });
+    });
+  </script>
 
 </body>
 </html>

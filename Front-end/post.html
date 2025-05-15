@@ -7,28 +7,72 @@
   <title>Blog post</title>
 </head>
 <body>
-    <nav class="blog-navbar">
-        <ul class="blog-navbar-menu">
-          <li><a href="blogpage.html">Home</a></li>
-          <li><a href="#">Services</a></li>
-           <li><a href="usercontrol.html">Manage</a></li>
-          <li><a href="itslogin.html">Sign Out</a></li>
-          <li class="navbar-spacer"></li> <!-- This creates space to the far right -->
-        </ul>
-      </nav>
-<div class="blog-post-form-container">
+  <nav class="blog-navbar">
+    <ul class="blog-navbar-menu">
+      <li><a href="blog">Home</a></li>
+      <li><a href="#">Services</a></li>
+      <li><a href="user-control">Manage</a></li>
+      <li><a href="login">Sign Out</a></li>
+      <li class="navbar-spacer"></li>
+    </ul>
+  </nav>
+
+  <div class="blog-post-form-container">
     <h2>Create a New Blog Post</h2>
-    <form class="blog-post-form" method="POST" action="/posts" id="postForm">
-  <label for="post-title">Title</label>
-  <input type="text" id="post-title" name="title" placeholder="Enter post title" required>
+    <form class="blog-post-form" id="postForm">
+      <label for="post-title">Title</label>
+      <input type="text" id="post-title" name="title" placeholder="Enter post title" required>
 
-  <label for="post-content">Content</label>
-  <textarea id="post-content" name="content" placeholder="Write your blog content here..." rows="10" required></textarea>
+      <label for="post-content">Content</label>
+      <textarea id="post-content" name="content" placeholder="Write your blog content here..." rows="10" required></textarea>
 
-  <button type="submit">Publish</button>
-</form>
-
+      <button type="submit">Publish</button>
+    </form>
   </div>
-  <script src="/front-end/javascript /postalert.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Show success alert if redirected with success query param
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        alert('Blog post published successfully!');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // Handle form submission via fetch POST request
+      document.getElementById('postForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const title = document.getElementById('post-title').value.trim();
+        const content = document.getElementById('post-content').value.trim();
+
+        if (!title || !content) {
+          alert('Please fill out both title and content.');
+          return;
+        }
+
+        try {
+          const response = await fetch('/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content }),
+          });
+
+          if (response.ok) {
+            // Redirect to same page with success param to trigger alert
+            window.location.href = '/post?success=true';
+          } else if (response.status === 401) {
+            alert('You must be logged in to post.');
+            window.location.href = '/login';
+          } else {
+            const errorText = await response.text();
+            alert('Post failed: ' + errorText);
+          }
+        } catch (error) {
+          alert('Error submitting post: ' + error.message);
+        }
+      });
+    });
+  </script>
 </body>
-  </html>
+</html>

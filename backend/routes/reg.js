@@ -24,7 +24,7 @@ module.exports = (connection) => {
     const router = express.Router();
 
     router.post('/reg', (req, res) => {
-        registercontroller.reg(req, res, connection);  // Pass connection to controller
+        registercontroller.reg(req, res, connection);  
     });
 
     router.get('/check-username', (req, res) => {

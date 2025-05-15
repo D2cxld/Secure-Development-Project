@@ -1,29 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Admin Control Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../styles.css" />
 </head>
 <body>
+
   <nav class="blog-navbar">
     <ul class="blog-navbar-menu">
-      <li><a href="itslogin.html">Sign Out</a></li>
+      <li><a href="blog">Home</a></li>
+      <li><a href="post">Post Blog</a></li>
+      <li><a href="login">Sign Out</a></li>
     </ul>
   </nav>
 
-  <main>
-    <h1>Admin Control Panel</h1>
-
-    <section class="admin-posts">
-      <h2>All Blog Posts</h2>
-      <div id="admin-posts-list">
-        <p>Loading posts...</p>
-      </div>
-    </section>
+  <main class="user-control-container">
+    <h2>All Blog Posts</h2>
+    <div id="admin-posts-list">
+      <p>Loading posts...</p>
+    </div>
   </main>
 
-  <script src="js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const postsContainer = document.getElementById('admin-posts-list');
+
+      try {
+        // Verify session and admin access
+        const sessionRes = await fetch('/session', { credentials: 'include' });
+        if (!sessionRes.ok) throw new Error('Session fetch failed');
+        const sessionData = await sessionRes.json();
+
+        if (!sessionData.isAdmin) {
+          postsContainer.innerHTML = '<p>Access denied. Admins only.</p>';
+          return;
+        }
+
+        // Fetch all posts
+        const postsRes = await fetch('/posts');
+        if (!postsRes.ok) throw new Error('Post fetch failed');
+        const posts = await postsRes.json();
+
+        if (!Array.isArray(posts) || posts.length === 0) {
+          postsContainer.innerHTML = '<p>No posts found.</p>';
+          return;
+        }
+
+        postsContainer.innerHTML = '';
+        posts.forEach(post => {
+          const postDiv = document.createElement('div');
+          postDiv.classList.add('user-post');
+          postDiv.setAttribute('data-id', post.id);
+
+          postDiv.innerHTML = `
+            <h3>${escapeHtml(post.title)}</h3>
+            <p>${escapeHtml(post.content)}</p>
+            <small>Posted: ${new Date(post.created_at).toLocaleString()}</small><br>
+            <small>User ID: ${post.user_id}</small>
+            <button class="delete-btn">Delete</button>
+            <hr>
+          `;
+          postsContainer.appendChild(postDiv);
+        });
+
+        // Attach delete event handlers
+        document.querySelectorAll('.delete-btn').forEach(button => {
+          button.addEventListener('click', async () => {
+            const postDiv = button.closest('.user-post');
+            const postId = postDiv.getAttribute('data-id');
+
+            if (confirm('Are you sure you want to delete this post?')) {
+              const delRes = await fetch(`/posts/${postId}`, { method: 'DELETE' });
+              if (delRes.ok) {
+                alert('Post deleted!');
+                postDiv.remove();
+              } else {
+                alert('Failed to delete post.');
+              }
+            }
+          });
+        });
+
+      } catch (err) {
+        console.error('Error loading posts:', err);
+        postsContainer.innerHTML = '<p>Error loading posts. Please try again later.</p>';
+      }
+    });
+
+    // Simple HTML escape function to prevent injection in titles/content
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>

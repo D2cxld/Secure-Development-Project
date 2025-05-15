@@ -1,71 +1,104 @@
 const express = require("express");
-const app = express();
-const path = require('path');
-const { Pool } = require('pg');
+const path = require("path");
+const session = require("express-session");
+const { Pool } = require("pg");
 
-// Setup PostgreSQL connection
+const app = express();
+const PORT = 5500;
+
+// ===== PostgreSQL Connection =====
 const pool = new Pool({
-    user: 'postgres', // <-- Replace with your actual Postgres username
-    host: 'localhost',
-    database: 'blogsdb',
-    password: 'Nightcrawler007',
-    port: 5434,
+  user: 'postgres',
+  host: 'localhost',
+  database: 'blogsdb',
+  password: 'Nightcrawler007',
+  port: 5434,
 });
 
 pool.connect()
-    .then(() => console.log('Connected to PostgreSQL'))
-    .catch((err) => console.error('PostgreSQL connection error:', err.stack));
+  .then(() => console.log("Connected to PostgreSQL"))
+  .catch((err) => console.error("PostgreSQL connection error:", err.stack));
 
-// Middleware
-const publicDirectory = path.join(__dirname, 'public');
-app.use(express.static(publicDirectory));
+// ===== Middleware =====
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-const session = require('express-session');
 
 app.use(session({
   secret: 'yourSecretKey',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true } // Set true if using HTTPS
+  cookie: { secure: false } // true if using HTTPS
 }));
 
+// ===== Static Files =====
+app.use('/styles.css', express.static(path.join(__dirname, 'styles.css')));
+app.use('/js', express.static(path.join(__dirname, 'front-end/javascript')));
+app.use(express.static(path.join(__dirname, 'public')));
 
-
-// Routes
-const registerRouter = require('./backend/routes/reg')(pool);  
+// ===== Routes =====
+const registerRouter = require('./backend/routes/reg')(pool);
 app.use('/register', registerRouter);
 
 const loginRouter = require('./backend/routes/log')(pool);
 app.use('/login', loginRouter);
 
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - Body:`, req.body);
+  next();
+});
+
 const postRouter = require('./backend/routes/postroutes');
 app.use('/posts', postRouter);
 
-// Serve pages
+const sessionRoutes = require('./backend/routes/sessionroutes');
+app.use('/session', sessionRoutes);
 
-const frontEndDirectory = path.join(__dirname, 'front-end');
-app.use(express.static(frontEndDirectory));
-  
-// Serve static assets
-app.get("/styles.css", (req, res) => {
-    res.type('text/css');
-    res.sendFile(path.join(__dirname, 'styles.css'));
+// ===== Explicit HTML Page Routes =====
+
+app.get('/blog', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end/blogpage.html'));
 });
 
-app.get("/js/register.js", (req, res) => {
-    res.type('text/javascript');
-    res.sendFile(path.join(__dirname, 'front-end', 'js', 'register.js'));
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end/admin.html'));
 });
 
-app.get('/js/postalert.js', (req, res) => {
-  res.type('text/javascript');
-  res.sendFile(path.join(__dirname, 'front-end', 'js', 'postalert.js'));
+app.get('/user-control', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end/usercontrol.html'));
 });
 
-// Route to handle requests for the blog page
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'test.html'));
+});
 
-// Start server
-app.listen(5500, () => {
-    console.log("Server started on port 5500"); // 
+app.get('/post', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'post.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'itslogin.html'));
+});
+
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'register.html'));
+});
+
+app.get('/reset', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'resetpass.html'));
+});
+
+app.get('/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front-end', 'homepage.html'));
+});
+
+
+
+// ===== Catch-all for 404 =====
+app.use((req, res) => {
+  res.status(404).send('Page not found');
+});
+
+// ===== Start Server =====
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });

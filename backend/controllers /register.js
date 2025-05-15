@@ -1,4 +1,3 @@
-// backend/controllers/register.js
 
 exports.reg = (req, res, connection) => {
     const { email, username, password, firstname, surname } = req.body;

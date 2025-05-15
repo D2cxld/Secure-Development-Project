@@ -1,26 +1,42 @@
-exports.login = (req, res,connection) => {
+exports.login = (req, res, pool) => {
     const { username, password } = req.body;
+
     console.log('Username:', username);
     console.log('Password:', password);
 
-    connection.query('SELECT username, password FROM user_login WHERE username = ?', [username], (error, results) => {
-        if (error) {
-            console.error('Error querying database:', error);
+    const query = 'SELECT * FROM "userlogin" WHERE username = $1';
+    console.log("Executing SQL:", query, "with", [username]);
+
+
+    pool.query(query, [username], (err, result) => {
+        if (err) {
+            console.error('Login DB error:', err.message);
             return res.status(500).send('Unable to connect to database');
         }
 
-        if (results.length === 0) {
+        if (result.rows.length === 0) {
             return res.status(401).send('Invalid username or password');
         }
 
-        const user = results[0];
+        const user = result.rows[0];
 
         if (password !== user.password) {
             return res.status(401).send('Invalid username or password');
         }
 
-        // SUCCESSFUL LOGIN
-        return res.status(200).send('Login successful!');
+        
+        // Set session
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+        };
+
+        // Redirect based on role
+        if (user.role === 'admin') {
+            return res.redirect('/admin');
+        } else {
+            return res.redirect('/blog');
+        }
     });
 };
-
