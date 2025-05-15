@@ -275,4 +275,9 @@ body {
   background-color: #0097a7;
 }
 
+/* trending post container */ 
+.trending-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
 

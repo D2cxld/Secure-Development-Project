@@ -21,6 +21,17 @@ connection.connect((error) => {
     }
 });
 
+//router.post('/', async (req, res) => {
+ // const { email, password } = req.body;
+  // ... authenticate user ...
+
+ // if (authenticated) {
+ //   req.session.userId = user.id; // Store user ID in session
+ //   res.redirect('/blogpage.html');
+ // } else {
+ //   res.status(401).send('Invalid credentials');
+ // }
+//});
 
 
 module.exports = (connection) => {

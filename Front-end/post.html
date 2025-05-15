@@ -11,22 +11,24 @@
         <ul class="blog-navbar-menu">
           <li><a href="blogpage.html">Home</a></li>
           <li><a href="#">Services</a></li>
+           <li><a href="usercontrol.html">Manage</a></li>
           <li><a href="itslogin.html">Sign Out</a></li>
           <li class="navbar-spacer"></li> <!-- This creates space to the far right -->
         </ul>
       </nav>
 <div class="blog-post-form-container">
     <h2>Create a New Blog Post</h2>
-    <form class="blog-post-form" method="POST" action="/posts">
-      <label for="post-title">Title</label>
-      <input type="text" id="post-title" name="title" placeholder="Enter post title" required>
-  
-      <label for="post-content">Content</label>
-      <textarea id="post-content" name="content" placeholder="Write your blog content here..." rows="10" required></textarea>
-  
-      <button type="submit">Publish</button>
-    </form>
+    <form class="blog-post-form" method="POST" action="/posts" id="postForm">
+  <label for="post-title">Title</label>
+  <input type="text" id="post-title" name="title" placeholder="Enter post title" required>
+
+  <label for="post-content">Content</label>
+  <textarea id="post-content" name="content" placeholder="Write your blog content here..." rows="10" required></textarea>
+
+  <button type="submit">Publish</button>
+</form>
+
   </div>
-  <script src="../js/postalert.js"></script>
+  <script src="/front-end/javascript /postalert.js"></script>
 </body>
   </html>
