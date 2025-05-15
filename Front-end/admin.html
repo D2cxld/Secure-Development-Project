@@ -65,7 +65,6 @@
           postsContainer.appendChild(postDiv);
         });
 
-        // Attach delete event handlers
         document.querySelectorAll('.delete-btn').forEach(button => {
           button.addEventListener('click', async () => {
             const postDiv = button.closest('.user-post');

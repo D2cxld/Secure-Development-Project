@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    postsContainer.innerHTML = ''; // Clear any existing content
+    postsContainer.innerHTML = ''; 
 
     posts.forEach(post => {
       const postDiv = document.createElement('div');

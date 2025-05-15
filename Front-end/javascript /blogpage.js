@@ -1,17 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const response = await fetch('/posts'); // Adjust the path based on your routing
+    const response = await fetch('/posts'); 
     const posts = await response.json();
 
     const userPostsContainer = document.querySelector('.posts-list');
     const trendingContainer = document.querySelector('.trending-container');
 
-    // Clear default messages
+    
     userPostsContainer.innerHTML = '';
     trendingContainer.innerHTML = '';
 
     posts.forEach((post, index) => {
-      // Create user post block
+      
       const postBlock = document.createElement('div');
       postBlock.classList.add('post');
       postBlock.innerHTML = `
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
       userPostsContainer.appendChild(postBlock);
 
-      // Trending post block (first 5 posts or based on another logic)
+      
       if (index < 5) {
         const trendBlock = document.createElement('div');
         trendBlock.classList.add('trending-post');
@@ -81,10 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load all posts on page load
   fetchAndDisplayPosts();
 
-  // Update on input
+  
   searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim();
     fetchAndDisplayPosts(query);

@@ -6,7 +6,7 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = 5500;
 
-// ===== PostgreSQL Connection =====
+//PostgreSQL Connection 
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -19,7 +19,7 @@ pool.connect()
   .then(() => console.log("Connected to PostgreSQL"))
   .catch((err) => console.error("PostgreSQL connection error:", err.stack));
 
-// ===== Middleware =====
+// Middleware 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -27,7 +27,7 @@ app.use(session({
   secret: 'yourSecretKey',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // true if using HTTPS
+  cookie: { secure: false } 
 }));
 
 // ===== Static Files =====
@@ -53,7 +53,7 @@ app.use('/posts', postRouter);
 const sessionRoutes = require('./backend/routes/sessionroutes');
 app.use('/session', sessionRoutes);
 
-// ===== Explicit HTML Page Routes =====
+// Routes 
 
 app.get('/blog', (req, res) => {
   res.sendFile(path.join(__dirname, 'front-end/blogpage.html'));
@@ -93,12 +93,12 @@ app.get('/home', (req, res) => {
 
 
 
-// ===== Catch-all for 404 =====
+// Error 404
 app.use((req, res) => {
   res.status(404).send('Page not found');
 });
 
-// ===== Start Server =====
+// Port listen 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       postsContainer.appendChild(postDiv);
     });
 
-    // Delete logic
+    // Delete 
     document.querySelectorAll('.delete-btn').forEach(button => {
       button.addEventListener('click', async () => {
         const postId = button.getAttribute('data-id');
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    // (Optional placeholder for future Edit logic)
+    // placeholder for future Edit logic
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', () => {
         alert('Edit functionality will be implemented later.');

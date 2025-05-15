@@ -1,8 +1,6 @@
-// backend/routes/sessionroutes.js
 const express = require('express');
 const router = express.Router();
 
-// This will now handle GET /session correctly
 router.get('/', (req, res) => {
   if (req.session && req.session.user) {
     res.json({

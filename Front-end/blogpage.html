@@ -14,41 +14,38 @@
       <li><a href="#">Services</a></li>
       <li><a href="user-control">Manage</a></li>
       <li><a href="login">Sign Out</a></li>
-      <li class="navbar-spacer"></li> <!-- This creates space to the far right -->
+      <li class="navbar-spacer"></li> 
     </ul>
   </nav>
   
-  <!-- Trending Posts Section -->
+  
   <section class="trending-posts">
     <h2>Trending Posts</h2>
     <div class="trending-container">
-      <!-- No posts yet, placeholder -->
+      
       <p>No trending posts available yet.</p>
     </div>
   </section>
 
-  <!-- Main Content Area -->
+  
   <div class="main-content">
 
-    <!-- User Posts Section -->
+    
     <section class="user-posts">
       <h2>User Posts</h2>
       <div class="posts-list">
-        <!-- Placeholder user posts -->
+        
         <p>No posts available yet. Start posting to see updates here!</p>
       </div>
     </section>
 
-    <!-- Sidebar -->
     <aside class="sidebar">
       
-      <!-- Search Box -->
       <div class="search-box">
         <h3>Search</h3>
         <input type="text" name="q" placeholder="Search blog...">
       </div>
 
-      <!-- Topics List -->
       <div class="topics-list">
         <h3>Topics</h3>
         <ul>
@@ -68,18 +65,18 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const response = await fetch('/posts'); // Adjust the path based on your routing
+        const response = await fetch('/posts');
         const posts = await response.json();
 
         const userPostsContainer = document.querySelector('.posts-list');
         const trendingContainer = document.querySelector('.trending-container');
 
-        // Clear default messages
+        
         userPostsContainer.innerHTML = '';
         trendingContainer.innerHTML = '';
 
         posts.forEach((post, index) => {
-          // Create user post block
+        
           const postBlock = document.createElement('div');
           postBlock.classList.add('post');
           postBlock.innerHTML = `
@@ -89,7 +86,7 @@
           `;
           userPostsContainer.appendChild(postBlock);
 
-          // Trending post block (first 5 posts or based on another logic)
+          
           if (index < 5) {
             const trendBlock = document.createElement('div');
             trendBlock.classList.add('trending-post');
@@ -149,11 +146,9 @@
           console.error('Search failed:', err);
         }
       }
-
-      // Load all posts on page load
       fetchAndDisplayPosts();
 
-      // Update on input
+
       searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim();
         fetchAndDisplayPosts(query);
