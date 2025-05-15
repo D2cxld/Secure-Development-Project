@@ -1,5 +1,5 @@
-const db = require('./backend/utils/dbConfig');
-
+const db = require('../../backend/utils/dbConfig');
+node tests/db-tests/test-db-connection.js
 async function testDatabaseConnection() {
   try {
     console.log('🔍 Testing PostgreSQL connection...');

@@ -1,4 +1,4 @@
-const db = require("./backend/utils/dbConfig");
+const db = require("../../backend/utils/dbConfig");
 
 async function listTables() {
   try {

@@ -12,7 +12,16 @@
   const axios = require('axios');
   const { Pool } = require('pg');
   const bcrypt = require('bcrypt');
-  require('dotenv').config();
+  const path = require('path');
+  require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
+  console.log('DB Config:', {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD ? '****' : undefined, // Don't print the actual password
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME
+  });
 
   // Database connection
   const pool = new Pool({

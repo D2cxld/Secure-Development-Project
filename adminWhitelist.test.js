@@ -1,12 +1,12 @@
 // Mock the database connection
-jest.mock('../../backend/utils/dbConfig', () => ({
+jest.mock('./backend/utils/dbConfig', () => ({
   query: jest.fn(),
   pool: {
     connect: jest.fn()
   }
 }));
 
-const db = require('../../backend/utils/dbConfig');
+const db = require('./backend/utils/dbConfig');
 
 describe('Admin Whitelist', () => {
   beforeEach(() => {

@@ -1,6 +1,16 @@
   const { Pool } = require('pg');
   const bcrypt = require('bcryptjs');
-  require('dotenv').config();
+  const path = require('path');
+  require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
+  console.log('Resolved .env path:', path.resolve(__dirname, '../../.env'));
+  console.log('Database config:', {
+    host: process.env.DB_HOST || 'default',
+    user: process.env.DB_USER || 'default',
+    password: process.env.DB_PASSWORD ? '****' : 'not set',
+    database: process.env.DB_NAME || 'default',
+    port: process.env.DB_PORT || 'default'
+  });
 
   // Define superadmin
   const USERNAME = 'superadmin';
